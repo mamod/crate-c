@@ -1,0 +1,14 @@
+language: perl
+perl:
+  - "5.16"
+
+sudo:
+  false
+
+# before_script:
+#   - wget https://cdn.crate.io/downloads/releases/crate-0.50.1.tar.gz -O /tmp/crate.tar.gz
+#   - tar -xvf /tmp/crate.tar.gz
+
+script:
+  - cd test
+  - "perl run.pl"
