@@ -1,4 +1,5 @@
-# Crate IO C client
+Crate IO C client (Under Development)
+=====================================
 
 This is a [crate io database](https://crate.io) **C client**, it uses [duktape](https://duktape.org) javascript embeddable C engine internally to parse and fetch json data
 
