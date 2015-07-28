@@ -6,6 +6,7 @@
 #include "crate_javascript.h"
 #include "deps/duktape/duktape.h"
 #include "deps/socket.c"
+#include "deps/errno.c"
 
 crate_db *crate_init (const char *options){
     crate_db *crate = malloc(sizeof(*crate));
@@ -19,6 +20,11 @@ crate_db *crate_init (const char *options){
     duk_push_global_object(ctx);
     duk_push_object(ctx);
     duk_put_prop_string(ctx, -2, "crate");
+    duk_pop(ctx);
+
+    duk_push_global_object(ctx);
+    init_binding_errno(ctx);
+    duk_put_prop_string(ctx, -2, "errno");
     duk_pop(ctx);
 
     /* initiate global process */
