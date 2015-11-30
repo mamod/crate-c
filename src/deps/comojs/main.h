@@ -17,9 +17,7 @@
     #endif
     
     #include <windows.h>
-    
-    #define dlopen(x,y) (void*)LoadLibrary(x)
-    #define dlclose(x) FreeLibrary((HMODULE)x)
+
     #define COMO_GET_LAST_ERROR GetLastError()
 
     static inline int _WSLASTERROR (){
@@ -69,15 +67,9 @@ void dump_stack(duk_context *ctx, const char *name) {
     fflush(stdout);
 }
 
-/* Need to define _wassert as tcc doesn't recognize it on win32 ?!!*/
-#ifndef _wassert
-#define _wassert assert
-#endif
-
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 #define COMO_METHOD(name) static int (name)(duk_context *ctx)
-#define COMO_METHOD_NAME(name)  name
 
 
 #define COMO_SET_ERRNO(ctx, err) do \
@@ -116,40 +108,5 @@ void como_sleep (int timeout){
         usleep(1000 * timeout);
     #endif
 }
-
-/* BINDINGS */
-// #include "bindings/errno.c"
-// #include "bindings/loop.c"
-// #include "bindings/coro.c"
-// #include "bindings/buffer.c"
-// #include "bindings/socket.c"
-// #include "bindings/io.c"
-// #include "bindings/http-parser.c"
-// #include "bindings/readline.c"
-// #include "bindings/worker.c"
-// #include "bindings/tty.c"
-// #include "bindings/fs.c"
-// #include "bindings/crypto.c"
-// #include "bindings/tls.c"
-
-#ifdef _WIN32
-    #define PLATFORM "win32"
-#elif __APPLE__
-    
-    #if TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR
-        // define something for simulator   
-    #elif TARGET_OS_IPHONE
-        // define something for iphone  
-    #else
-        #define TARGET_OS_OSX 1
-        // define something for OSX
-    #endif
-#elif __linux
-     #define PLATFORM "linux"
-#elif __unix // all unices not caught above
-     #define PLATFORM "unix"
-#elif __posix
-    // POSIX
-#endif
 
 #endif /*_COMO_CORE_H*/
