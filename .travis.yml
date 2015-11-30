@@ -1,5 +1,8 @@
 language: c
 
+before_script:
+  - mkdir /home/travis/tmp
+  - wget https://cdn.crate.io/downloads/releases/crate-0.52.2.tar.gz -O /home/travis/tmp/crate.tar.gz
+
 script:
-  - cd test
-  - "perl run.pl"
+  - "perl ./test/run.pl"

@@ -1,12 +1,20 @@
-#include "main.h"
-#include "crate.h"
+#include "deps/comojs/main.h"
+
+#include "deps/comojs/socket.c"
+#include "deps/comojs/errno.c"
+
 #include <float.h>
 #include <limits.h>
 
+#include "crate.h"
+
+#ifdef CRATE_SINGLE
+#include "deps/duktape/duktape.c"
+#endif
+
+const char *crate_javascript =
 #include "crate_javascript.h"
-#include "deps/duktape/duktape.h"
-#include "deps/socket.c"
-#include "deps/errno.c"
+;
 
 crate_db *crate_init (const char *options){
     crate_db *crate = malloc(sizeof(*crate));
@@ -38,8 +46,12 @@ crate_db *crate_init (const char *options){
     duk_pop(ctx);
 
     /* load internal functions */
-    if (duk_peval_file(ctx, "crate.js") != 0) {
-        printf("Error %s\n", duk_safe_to_string(ctx, -2));
+    #ifdef CRATE_DEV
+    if (duk_peval_file(ctx, "./src/crate.js") != 0) {
+    #else
+    if (duk_peval_string(ctx, crate_javascript) != 0) { 
+    #endif
+        printf("Error %s\n", duk_safe_to_string(ctx, -1));
         duk_destroy_heap(ctx);
         exit(1);
     }
@@ -47,13 +59,14 @@ crate_db *crate_init (const char *options){
     duk_pop(ctx);
 
     /* load options */
-    if (duk_peval_file(ctx, options) != 0) {
-        printf("Error %s\n", duk_safe_to_string(ctx, -2));
-        duk_destroy_heap(ctx);
-        exit(1);
+    if (options != NULL){
+        if (duk_peval_file(ctx, options) != 0) {
+            printf("Error %s\n", duk_safe_to_string(ctx, -1));
+            duk_destroy_heap(ctx);
+            exit(1);
+        }
+        duk_pop(ctx);
     }
-
-    duk_pop(ctx);
     
     crate->ctx = ctx;
     return crate;
@@ -210,6 +223,7 @@ int crate_stmt_bind_false(crate_stmt *stmt) {
 }
 
 /* END BIND FUNCTIONS */
+
 
 
 int crate_stmt_execute(crate_stmt *stmt) {

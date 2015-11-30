@@ -1,4 +1,7 @@
 #include <fcntl.h>
+#include <sys/time.h>
+#include <sys/types.h>
+
 #include "inet.c"
 #include "como_errno.h"
 #ifndef _WIN32
@@ -707,6 +710,74 @@ COMO_METHOD(como_host_to_ip) {
     return 1;
 }
 
+/** 
+  * can read
+******************************************************************************/
+COMO_METHOD(como_sock_can_read) {
+    int fd      = duk_require_int(ctx, 0);
+    
+    int hasTimeout  = 0;
+    fd_set fds;
+    struct timeval tv;
+    int retval;
+
+    if (duk_is_number(ctx, 1)) {
+        hasTimeout = 1;
+        int timeout = duk_require_int(ctx, 1);
+        tv.tv_sec = 0;
+        tv.tv_usec = timeout*1000;
+    }
+
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+
+    retval = select(fd + 1, &fds, NULL, NULL, hasTimeout ? &tv : NULL);
+
+    if (retval == -1) {
+       COMO_SET_ERRNO_AND_RETURN(ctx, COMO_GET_LAST_ERROR);
+    } else if (retval) {
+       duk_push_int(ctx, 1);
+    } else {
+       duk_push_int(ctx, 0);
+    }
+
+    return 1;
+}
+
+/** 
+  * can write
+******************************************************************************/
+COMO_METHOD(como_sock_can_write) {
+    int fd      = duk_require_int(ctx, 0);
+    
+    int hasTimeout  = 0;
+    fd_set fds;
+    struct timeval tv;
+    int retval;
+
+    if (duk_is_number(ctx, 1)) {
+        hasTimeout = 1;
+        int timeout = duk_require_int(ctx, 1);
+        tv.tv_sec = 0;
+        tv.tv_usec = timeout*1000;
+    }
+
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+
+    retval = select(fd + 1, NULL, &fds, NULL, hasTimeout ? &tv : NULL);
+
+    if (retval == -1) {
+       COMO_SET_ERRNO_AND_RETURN(ctx, COMO_GET_LAST_ERROR);
+    } else if (retval) {
+       duk_push_int(ctx, 1);
+    } else {
+       duk_push_int(ctx, 0);
+    }
+
+    return 1;
+}
+
 /*=============================================================================
   socket export functions list
  ============================================================================*/
@@ -737,7 +808,9 @@ static const duk_function_list_entry como_socket_funcs[] = {
     { "isIP"           , como_sock_isIP, 1},
     { "family"         , como_sock_get_family, 1 },
     { "addr_info"      , como_sock_address_info, 1 },
-    { NULL         , NULL, 0 }
+    { "can_read"       , como_sock_can_read,  2 },
+    { "can_write"      , como_sock_can_write, 2 },
+    { NULL             , NULL, 0 }
 };
 
 /*=============================================================================

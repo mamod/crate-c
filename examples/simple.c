@@ -19,7 +19,4 @@ In this example we will
 					)"
 
 
-int main (){
-
-
-}
+int main (){}
